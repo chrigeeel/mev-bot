@@ -44,7 +44,7 @@ import {
 } from './constants.js';
 import { SwapLegAndAccounts } from '@jup-ag/core/dist/lib/amm.js';
 import { toLittleEndianHex } from './utils.js';
-import { IDL } from './jupiter-idl.js';
+import { Jupiter as IDL } from './jupiter-idl.js';
 const JSBI = defaultImport(jsbi);
 
 const PROFIT_BUFFER_PERCENT = 3;
@@ -81,7 +81,11 @@ const payer = Keypair.fromSecretKey(
 
 const wallet = new anchor.Wallet(payer);
 const provider = new anchor.AnchorProvider(connection, wallet, {});
-const jupiterProgram = new anchor.Program(IDL, JUPITER_PROGRAM_ID, provider);
+const jupiterProgram = new anchor.Program(
+  IDL as anchor.Idl,
+  JUPITER_PROGRAM_ID,
+  provider,
+);
 
 // market to calculate usdc profit in sol
 const usdcToSolMkt = getMarketsForPair(
