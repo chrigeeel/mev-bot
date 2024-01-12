@@ -1,6 +1,7 @@
 import { ICompare, PriorityQueue } from '@datastructures-js/priority-queue';
 import { logger } from './logger.js';
 import { Queue } from '@datastructures-js/queue';
+import jsbi from 'jsbi';
 
 class AsyncQueue<T> {
   private readonly _queue: Queue<T> = new Queue();
@@ -161,7 +162,29 @@ async function* fuseGenerators<T>(
   }
 }
 
+function toLittleEndianHex(value: jsbi.default): string {
+  let hex = value.toString(16);
+
+  // Ensure even number of characters (important for byte representation)
+  if (hex.length % 2 !== 0) {
+    hex = '0' + hex;
+  }
+
+  // Ensure 16 characters for uint64 representation
+  while (hex.length < 16) {
+    hex = '00' + hex;
+  }
+
+  const byteArray: string[] = [];
+  for (let i = 0; i < hex.length; i += 2) {
+    byteArray.push(hex.substring(i, i + 2));
+  }
+
+  return byteArray.reverse().join('');
+}
+
 export {
+  toLittleEndianHex,
   dropBeyondHighWaterMark,
   prioritize,
   shuffle,

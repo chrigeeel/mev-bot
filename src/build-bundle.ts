@@ -43,6 +43,7 @@ import {
   SOLEND_TURBO_USDC_RESERVE,
 } from './constants.js';
 import { SwapLegAndAccounts } from '@jup-ag/core/dist/lib/amm.js';
+import { toLittleEndianHex } from './utils.js';
 const JSBI = defaultImport(jsbi);
 
 const PROFIT_BUFFER_PERCENT = 3;
@@ -376,27 +377,6 @@ async function* buildBundle(
         payer.publicKey,
       );
       instructionsMain.push(closeSolTokenAcc);
-    }
-
-    function toLittleEndianHex(value: jsbi.default): string {
-      let hex = value.toString(16);
-
-      // Ensure even number of characters (important for byte representation)
-      if (hex.length % 2 !== 0) {
-        hex = '0' + hex;
-      }
-
-      // Ensure 16 characters for uint64 representation
-      while (hex.length < 16) {
-        hex = '00' + hex;
-      }
-
-      const byteArray: string[] = [];
-      for (let i = 0; i < hex.length; i += 2) {
-        byteArray.push(hex.substring(i, i + 2));
-      }
-
-      return byteArray.reverse().join('');
     }
 
     const slot = await connection.getSlot('processed');
