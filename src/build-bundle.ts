@@ -13,7 +13,7 @@ import { config } from './config.js';
 import * as Token from '@solana/spl-token-3';
 import { connection } from './clients/rpc.js';
 import { BN } from 'bn.js';
-import { JUPITER_PROGRAM_ID, SwapMode } from '@jup-ag/common';
+import { IDL, JUPITER_PROGRAM_ID, SwapMode } from '@jup-ag/common';
 
 import jsbi from 'jsbi';
 import { defaultImport } from 'default-import';
@@ -44,7 +44,6 @@ import {
 } from './constants.js';
 import { SwapLegAndAccounts } from '@jup-ag/core/dist/lib/amm.js';
 import { toLittleEndianHex } from './utils.js';
-import { Jupiter as IDL } from './jupiter-idl.js';
 const JSBI = defaultImport(jsbi);
 
 const PROFIT_BUFFER_PERCENT = 3;
