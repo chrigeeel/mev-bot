@@ -54,6 +54,9 @@ async function* preSimulationFilter(
       const accountsOfInterest = new Set<string>();
 
       let skipTx = false;
+      if (accountKeys.length > 64) {
+        skipTx = true;
+      }
       for (const key of accountKeys.keySegments().flat()) {
         const keyStr = key.toBase58();
         if (SKIP_TX_IF_CONTAINS_ADDRESS.includes(keyStr)) {
