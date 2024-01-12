@@ -62,7 +62,7 @@ async function* postSimulateFilter(
   } of simulationsIteratorGreedy) {
     const txnSimulationResult = response.value.transactionResults[0];
 
-    if (txnSimulationResult.err !== null) {
+    if (txnSimulationResult === undefined || txnSimulationResult.err !== null) {
       continue;
     }
 
