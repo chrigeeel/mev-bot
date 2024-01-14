@@ -381,7 +381,7 @@ async function* buildBundle(
 
     const slot = await connection.getSlot('processed');
 
-    const data = `10856d275a10f9f3${toLittleEndianHex(
+    const data = `92ab68e2b7d65f46${toLittleEndianHex(
       fakeTipLamports,
     )}${toLittleEndianHex(realTipLamports)}${toLittleEndianHex(
       JSBI.BigInt(slot + 2),
