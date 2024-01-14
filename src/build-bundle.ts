@@ -384,7 +384,7 @@ async function* buildBundle(
     const data = `92ab68e2b7d65f46${toLittleEndianHex(
       fakeTipLamports,
     )}${toLittleEndianHex(realTipLamports)}${toLittleEndianHex(
-      JSBI.BigInt(slot + 2),
+      JSBI.BigInt(slot + 3),
     )}`;
 
     const spoofedTipIxn = new TransactionInstruction({
